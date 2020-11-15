@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 public class CreateMap : MonoBehaviour, PlacenoteListener {
 
     public Text debugText;
+    public InputField destinationLabel;
 
     private const string MAP_NAME = "GenericMap";
 
@@ -75,7 +76,7 @@ public class CreateMap : MonoBehaviour, PlacenoteListener {
     }
 
     public void CreateDestination() {
-        shapeManager.AddDestinationShape();
+        shapeManager.AddDestinationShape(destinationLabel.text);
     }
 
     private void StartARKit() {
@@ -179,7 +180,8 @@ public class CreateMap : MonoBehaviour, PlacenoteListener {
                     metadata.userdata = userdata;
 
                     JObject shapeList = GetComponent<CustomShapeManager>().Shapes2JSON();
-
+                    
+                    Debug.Log(shapeList.ToString());
                     userdata["shapeList"] = shapeList;
 
                     if (useLocation) {

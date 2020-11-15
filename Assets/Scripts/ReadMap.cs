@@ -9,8 +9,11 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
-public class ReadMap : MonoBehaviour, PlacenoteListener {
-
+public class ReadMap : MonoBehaviour, PlacenoteListener
+{
+    public RectTransform panel;
+    public Dropdown dropdown;
+    
     private const string MAP_NAME = "GenericMap";
 
     private UnityARSessionNativeInterface mSession;
@@ -102,14 +105,42 @@ public class ReadMap : MonoBehaviour, PlacenoteListener {
 #endif
     }
 
+    private void InitDropdown()
+    {
+        List<string> destinations = new List<string>();
+        var mapMetadata = mSelectedMapInfo.metadata.userdata;
+        if (mapMetadata is JObject && mapMetadata["shapeList"] is JObject)
+        {
+            ShapeList shapeList = mapMetadata["shapeList"].ToObject<ShapeList>();
+            if (shapeList.shapes == null)
+            {
+                Debug.Log("no shapes dropped");
+                return;
+            }
+
+            foreach (var shapeInfo in shapeList.shapes)
+            {
+                if(shapeInfo.shapeType == 1.GetHashCode())
+                    destinations.Add(shapeInfo.label);
+            }
+        }
+        dropdown.AddOptions(destinations);
+    }
+
     public void OnPose(Matrix4x4 outputPose, Matrix4x4 arkitPose) { }
 
     public void OnStatusChange(LibPlacenote.MappingStatus prevStatus, LibPlacenote.MappingStatus currStatus) {
         Debug.Log("prevStatus: " + prevStatus.ToString() + " currStatus: " + currStatus.ToString());
         if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.LOST) {
-            Debug.Log("Localized: " + mSelectedMapInfo.metadata.name);
-            GetComponent<CustomShapeManager>().LoadShapesJSON(mSelectedMapInfo.metadata.userdata);
-            FeaturesVisualizer.DisablePointcloud();
+            if (!GetComponent<CustomShapeManager>().shapesLoaded)
+            {
+                Debug.Log("Localized: " + mSelectedMapInfo.metadata.name);
+                
+                panel.gameObject.SetActive(true);
+                InitDropdown();
+            
+                FeaturesVisualizer.DisablePointcloud();
+            }
         } else if (currStatus == LibPlacenote.MappingStatus.RUNNING && prevStatus == LibPlacenote.MappingStatus.WAITING) {
             Debug.Log("Mapping");
         } else if (currStatus == LibPlacenote.MappingStatus.LOST) {
@@ -120,4 +151,13 @@ public class ReadMap : MonoBehaviour, PlacenoteListener {
             }
         }
     }
+
+    public void OnStartButtonClicked()
+    {
+        string selectedLabel = dropdown.options[dropdown.value].text;
+        Debug.Log(selectedLabel);
+        GetComponent<CustomShapeManager>().LoadShapesJSON(mSelectedMapInfo.metadata.userdata, selectedLabel);
+        panel.gameObject.SetActive(false);
+    }
+    
 }

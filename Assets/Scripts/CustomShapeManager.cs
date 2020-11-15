@@ -11,8 +11,9 @@ using UnityEngine.SceneManagement;
  * Main Class for Managing Markers
 ======================================== */
 
-public class CustomShapeManager : MonoBehaviour {
-
+public class CustomShapeManager : MonoBehaviour
+{
+	public const string DEFAULT_SHAPE_NAME = "DEFAULT";
 	public NavController navController;
 
 	public List<GameObject> ShapePrefabs = new List<GameObject> ();
@@ -23,7 +24,7 @@ public class CustomShapeManager : MonoBehaviour {
 
 	private GameObject lastShape;
 
-	private bool shapesLoaded = false;
+	public bool shapesLoaded = false;
     //-------------------------------------------------
     // All shape management functions (add shapes, save shapes to metadata etc.
     //-------------------------------------------------
@@ -41,6 +42,7 @@ public class CustomShapeManager : MonoBehaviour {
         shapeInfo.qy = shapeRotation.y;
         shapeInfo.qz = shapeRotation.z;
         shapeInfo.qw = shapeRotation.w;
+        shapeInfo.label = DEFAULT_SHAPE_NAME;
 		shapeInfo.shapeType = typeIndex.GetHashCode();
         shapeInfoList.Add(shapeInfo);
 
@@ -48,10 +50,11 @@ public class CustomShapeManager : MonoBehaviour {
         shapeObjList.Add(shape);
     }
 
-	public void AddDestinationShape () {
+	public void AddDestinationShape (string label) { 
 		//change last waypoint to diamond
 		ShapeInfo lastInfo = shapeInfoList [shapeInfoList.Count - 1];
 		lastInfo.shapeType = 1.GetHashCode ();
+		lastInfo.label = label;
 		GameObject shape = ShapeFromInfo(lastInfo);
 		shape.GetComponent<DiamondBehavior> ().Activate (true);
 		//destroy last shape
@@ -63,6 +66,7 @@ public class CustomShapeManager : MonoBehaviour {
     public GameObject ShapeFromInfo(ShapeInfo info)
     {
 		GameObject shape;
+		Debug.Log("Create : " +info.label + " , Type : " + info.shapeType);
 		Vector3 position = new Vector3 (info.px, info.py, info.pz);
 		//if loading map, change waypoint to arrow
 		if (SceneManager.GetActiveScene ().name == "ReadMap" && info.shapeType == 0) {
@@ -106,7 +110,7 @@ public class CustomShapeManager : MonoBehaviour {
         return JObject.FromObject(shapeList);
     }
 
-    public void LoadShapesJSON(JToken mapMetadata)
+    public void LoadShapesJSON(JToken mapMetadata, string selectedDestination)
     {
 		if (!shapesLoaded) {
 			shapesLoaded = true;
@@ -119,6 +123,13 @@ public class CustomShapeManager : MonoBehaviour {
 				}
 
 				foreach (var shapeInfo in shapeList.shapes) {
+					Debug.Log(shapeInfo.label + " is loaded");
+					if (shapeInfo.label != selectedDestination && shapeInfo.shapeType == 1)
+					{
+						Debug.Log("Change type : " + shapeInfo.label);
+						shapeInfo.shapeType = 0;
+					}
+
 					shapeInfoList.Add (shapeInfo);
 					GameObject shape = ShapeFromInfo (shapeInfo);
 					shapeObjList.Add (shape);

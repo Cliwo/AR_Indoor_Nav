@@ -18,6 +18,7 @@ public class ShapeInfo
     public float qy;
     public float qz;
     public float qw;
+    public string label;
     public int shapeType;
     public int colorType;
 }
