@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 public class HttpRequest : MonoBehaviour
 {
     private static string OAuthToken =
-        "xoxp-1535876942773-1524231484999-1550123834869-aefa1c2b3b3e5ea71e6cf799d0566601";
+        "xoxp-1535876942773-1524231484999-1553426522339-fb31deb42562252e2495328a9247b9f2";
     public static string SeungchanJeong = "U01FE6TE8VD";
     public static string SeungchanLim = "U01FRS071S9";
     public static string HyunyoungJang = "U01FE6L3DQX";
